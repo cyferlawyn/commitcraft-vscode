@@ -1,0 +1,17 @@
+.vscode/**
+.vscode-test/**
+src/**
+experiment/**
+scripts/**
+out/extension.js.map
+tsconfig.json
+esbuild.config.js
+node_modules/**
+*.vsix
+.gitignore
+.npmignore
+PRD.md
+.vscodeignore.*
+bin/darwin-arm64/**
+bin/darwin-x64/**
+bin/linux-x64/**

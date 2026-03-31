@@ -1,0 +1,102 @@
+{
+  "name": "commitcraft",
+  "displayName": "CommitCraft",
+  "description": "AI-generated conventional commit messages. Entirely on-device. No API keys. No code leaves your machine.",
+  "version": "0.1.0",
+  "publisher": "commitcraft",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/commitcraft/commitcraft-vscode"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "SCM Providers"
+  ],
+  "keywords": [
+    "git",
+    "commit",
+    "conventional commits",
+    "commitlint",
+    "ai",
+    "local",
+    "offline",
+    "privacy",
+    "llm"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "commitcraft.generate",
+        "title": "CommitCraft: Generate Commit Message",
+        "icon": "$(sparkle)"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "commitcraft.generate",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CommitCraft",
+      "properties": {
+        "commitcraft.modelPath": {
+          "type": "string",
+          "default": "",
+          "description": "Override the default model cache path. Leave empty to use the default (~/.commitcraft/models/)."
+        },
+        "commitcraft.modelUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Override the model download URL. Leave empty to use the default Hugging Face URL."
+        },
+        "commitcraft.inferenceTimeout": {
+          "type": "number",
+          "default": 30,
+          "description": "Maximum seconds to wait for inference before timing out."
+        },
+        "commitcraft.maxDiffTokens": {
+          "type": "number",
+          "default": 4000,
+          "description": "Maximum number of tokens of diff to pass to the model. Larger diffs are truncated."
+        },
+        "commitcraft.generateBody": {
+          "type": "boolean",
+          "default": false,
+          "description": "Generate a commit body paragraph in addition to the subject line."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify",
+    "build:dev": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "package": "npm run build && vsce package",
+    "package:win32-x64": "npm run build && vsce package --target win32-x64 --ignoreFile .vscodeignore.win32-x64",
+    "package:darwin-arm64": "npm run build && vsce package --target darwin-arm64 --ignoreFile .vscodeignore.darwin-arm64",
+    "package:darwin-x64": "npm run build && vsce package --target darwin-x64 --ignoreFile .vscodeignore.darwin-x64",
+    "package:linux-x64": "npm run build && vsce package --target linux-x64 --ignoreFile .vscodeignore.linux-x64",
+    "package:all": "npm run package:win32-x64 && npm run package:darwin-arm64 && npm run package:darwin-x64 && npm run package:linux-x64",
+    "vscode:prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.7.1",
+    "esbuild": "^0.27.4",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,24 @@
+.git/
+node_modules/
+out/
+*.vsix
+experiment/
+PRD.md
+
+# Exclude all binaries from bin dirs by default, then re-include only what's needed
+bin/darwin-arm64/*
+!bin/darwin-arm64/llama-cli
+!bin/darwin-arm64/llama-completion
+!bin/darwin-arm64/*.dylib
+bin/darwin-x64/*
+!bin/darwin-x64/llama-cli
+!bin/darwin-x64/llama-completion
+!bin/darwin-x64/*.dylib
+bin/linux-x64/*
+!bin/linux-x64/llama-cli
+!bin/linux-x64/llama-completion
+!bin/linux-x64/*.so
+!bin/linux-x64/*.so.*
+bin/win32-x64/*
+!bin/win32-x64/llama-cli.exe
+!bin/win32-x64/*.dll
