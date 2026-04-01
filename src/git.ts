@@ -102,10 +102,55 @@ export async function getStagedDiff(
   }
 
   const originalLength = stdout.length;
-  const truncated = originalLength > maxChars;
-  const diff = truncated ? stdout.slice(0, maxChars) + '\n[diff truncated]' : stdout;
+  const compacted = compactDiff(stdout);
+  const truncated = compacted.length > maxChars;
+  const diff = truncated ? compacted.slice(0, maxChars) + '\n[diff truncated]' : compacted;
 
   return { diff, truncated, originalLength };
+}
+
+/**
+ * Compacts a git diff to reduce token count for the model.
+ * Whole-file deletions and additions are summarised to just the header line —
+ * the model doesn't need to read 141 lines of deleted markdown to know the type.
+ * Partial hunks (modifications) are left intact.
+ */
+function compactDiff(diff: string): string {
+  const fileDiffs = diff.split(/(?=^diff --git )/m);
+
+  return fileDiffs.map(fileDiff => {
+    if (!fileDiff.trim()) {
+      return fileDiff;
+    }
+
+    const isWholeFileDelete = /^deleted file mode/m.test(fileDiff);
+    const isWholeFileAdd = /^new file mode/m.test(fileDiff) && !/^[-]/m.test(
+      fileDiff.replace(/^diff --git .+\n(new file mode .+\n)?(index .+\n)?(\+\+\+ .+\n)?/m, '')
+    );
+
+    if (isWholeFileDelete || isWholeFileAdd) {
+      // Keep only the header lines, replace hunk content with a summary
+      const headerLines: string[] = [];
+      const lines = fileDiff.split('\n');
+      let hunkLineCount = 0;
+
+      for (const line of lines) {
+        if (line.startsWith('@@')) {
+          // Count removed/added lines from the hunk header e.g. @@ -1,141 +0,0 @@
+          const match = line.match(/@@ [+-]\d+(?:,(\d+))? [+-]\d+(?:,(\d+))? @@/);
+          hunkLineCount = match ? parseInt(match[1] ?? match[2] ?? '1') : 0;
+          break;
+        }
+        headerLines.push(line);
+      }
+
+      const action = isWholeFileDelete ? 'deleted' : 'added';
+      headerLines.push(`[${hunkLineCount} lines ${action} — content omitted for brevity]`);
+      return headerLines.join('\n');
+    }
+
+    return fileDiff;
+  }).join('');
 }
 
 /**

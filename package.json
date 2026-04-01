@@ -2,7 +2,7 @@
   "name": "cyferlawyn-commitcraft",
   "displayName": "CommitCraft — Local AI",
   "description": "AI-generated conventional commit messages. Entirely on-device. No API keys. No code leaves your machine.",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "publisher": "cyferlawyn",
   "icon": "icon.png",
   "license": "SEE LICENSE IN LICENSE",
@@ -64,7 +64,7 @@
         },
         "commitcraft.inferenceTimeout": {
           "type": "number",
-          "default": 30,
+          "default": 120,
           "description": "Maximum seconds to wait for inference before timing out."
         },
         "commitcraft.maxDiffTokens": {
