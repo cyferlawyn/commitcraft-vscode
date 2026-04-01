@@ -149,7 +149,7 @@ export async function promptForLicenseKey(
     const reason = result.status === 'invalid' ? result.reason : 'Unknown error';
     vscode.window.showErrorMessage(
       `Invalid license key: ${reason}. ` +
-      `Purchase a key at https://commitcraft.dev`,
+      `Purchase a key at https://commitcraft.cyferlawyn.org`,
     );
     return false;
   }
@@ -173,7 +173,7 @@ export async function checkLicenseGate(
     if (state.daysRemaining <= TRIAL_DAYS - REMINDER_START_DAY) {
       vscode.window.showInformationMessage(
         `CommitCraft trial: ${state.daysRemaining} day${state.daysRemaining === 1 ? '' : 's'} remaining. ` +
-        `Get a license at https://commitcraft.dev`,
+        `Get a license at https://commitcraft.cyferlawyn.org`,
         'Enter License Key',
       ).then(action => {
         if (action === 'Enter License Key') {
@@ -192,7 +192,7 @@ export async function checkLicenseGate(
     );
 
     if (action === 'Buy License') {
-      vscode.env.openExternal(vscode.Uri.parse('https://commitcraft.dev'));
+      vscode.env.openExternal(vscode.Uri.parse('https://commitcraft.cyferlawyn.org'));
     } else if (action === 'Enter License Key') {
       return await promptForLicenseKey(context);
     }

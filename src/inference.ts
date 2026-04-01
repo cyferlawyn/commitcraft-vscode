@@ -191,6 +191,20 @@ export async function runInference(options: InferenceOptions): Promise<Inference
       const elapsed = Date.now() - startTime;
 
       if (code !== 0 && code !== null) {
+        // macOS Gatekeeper: exit code 13 (EACCES) or stderr mentioning quarantine
+        const isGatekeeper =
+          process.platform === 'darwin' &&
+          (code === 13 || stderr.toLowerCase().includes('quarantine') || stderr.toLowerCase().includes('killed'));
+
+        if (isGatekeeper) {
+          reject(new Error(
+            `macOS blocked the CommitCraft binary (Gatekeeper). ` +
+            `Run this in Terminal, then reload VS Code:\n` +
+            `xattr -dr com.apple.quarantine "${path.dirname(binaryPath)}/"`,
+          ));
+          return;
+        }
+
         reject(new Error(
           `Inference process exited with code ${code}. ` +
           `stderr: ${stderr.slice(0, 500)}`,
@@ -208,6 +222,15 @@ export async function runInference(options: InferenceOptions): Promise<Inference
 
     proc.on('error', (err: Error) => {
       clearTimeout(timer);
+      // EACCES on macOS often means Gatekeeper quarantine
+      if (process.platform === 'darwin' && (err as NodeJS.ErrnoException).code === 'EACCES') {
+        reject(new Error(
+          `macOS blocked the CommitCraft binary (Gatekeeper). ` +
+          `Run this in Terminal, then reload VS Code:\n` +
+          `xattr -dr com.apple.quarantine "${path.dirname(binaryPath)}/"`,
+        ));
+        return;
+      }
       reject(new Error(`Failed to start inference: ${err.message}`));
     });
   });
