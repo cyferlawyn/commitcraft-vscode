@@ -3,7 +3,7 @@
   "displayName": "CommitCraft",
   "description": "AI-generated conventional commit messages. Entirely on-device. No API keys. No code leaves your machine.",
   "version": "0.1.0",
-  "publisher": "commitcraft",
+  "publisher": "cyferlawyn",
   "icon": "icon.png",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
