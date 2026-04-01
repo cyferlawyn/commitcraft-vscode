@@ -8,6 +8,9 @@ PRD.md
 # License key issuance script — never in public repo
 scripts/
 
+# Local dev settings (machine-specific paths)
+.vscode/settings.json
+
 # Exclude all binaries from bin dirs by default, then re-include only what's needed
 bin/darwin-arm64/*
 !bin/darwin-arm64/llama-cli
