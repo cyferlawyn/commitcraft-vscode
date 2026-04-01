@@ -40,7 +40,44 @@ export async function getStagedDiff(
   }
 
   if (!stdout.trim()) {
-    throw new Error('No staged changes. Stage your files first (git add).');
+    // git diff --staged can be empty even with staged changes in edge cases
+    // (e.g. pure deletions on some git versions, binary files, submodules).
+    // Fall back to git status to check if anything is actually staged.
+    let statusOut = '';
+    try {
+      const statusResult = await execFileAsync('git', ['status', '--short'], {
+        cwd: workspaceRoot,
+      });
+      statusOut = statusResult.stdout;
+    } catch {
+      // ignore
+    }
+
+    const hasStagedChanges = statusOut.split('\n').some(line => /^[AMDRC]/.test(line));
+    if (!hasStagedChanges) {
+      throw new Error('No staged changes. Stage your files first (git add).');
+    }
+
+    // Something is staged but produces no text diff (binary, submodule, etc.)
+    // Use git diff --staged --name-status as a minimal description for the model.
+    try {
+      const nsResult = await execFileAsync(
+        'git', ['diff', '--staged', '--name-status', '--no-color'],
+        { cwd: workspaceRoot },
+      );
+      stdout = nsResult.stdout.trim()
+        ? `Staged changes (no text diff available):\n${nsResult.stdout}`
+        : statusOut.split('\n')
+            .filter(l => /^[AMDRC]/.test(l))
+            .map(l => l.trim())
+            .join('\n');
+    } catch {
+      throw new Error('No staged changes. Stage your files first (git add).');
+    }
+
+    if (!stdout.trim()) {
+      throw new Error('No staged changes. Stage your files first (git add).');
+    }
   }
 
   const originalLength = stdout.length;
