@@ -11,15 +11,19 @@ import { buildPrompt } from './prompt';
 import { runInference } from './inference';
 import { validateCommit, extractCommitLine } from './validator';
 import { ensureModel } from './model';
-import { checkLicenseGate } from './license';
+import { checkLicenseGate, promptForLicenseKey } from './license';
 
 export function activate(context: vscode.ExtensionContext): void {
-  const disposable = vscode.commands.registerCommand(
-    'commitcraft.generate',
-    () => generateCommitMessage(context),
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'commitcraft.generate',
+      () => generateCommitMessage(context),
+    ),
+    vscode.commands.registerCommand(
+      'commitcraft.enterLicenseKey',
+      () => promptForLicenseKey(context),
+    ),
   );
-
-  context.subscriptions.push(disposable);
 }
 
 export function deactivate(): void {

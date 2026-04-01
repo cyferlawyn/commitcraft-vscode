@@ -2,7 +2,7 @@
   "name": "cyferlawyn-commitcraft",
   "displayName": "CommitCraft — Local AI",
   "description": "AI-generated conventional commit messages. Entirely on-device. No API keys. No code leaves your machine.",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "publisher": "cyferlawyn",
   "icon": "icon.png",
   "license": "SEE LICENSE IN LICENSE",
@@ -38,6 +38,10 @@
         "command": "commitcraft.generate",
         "title": "CommitCraft: Generate Commit Message",
         "icon": "$(sparkle)"
+      },
+      {
+        "command": "commitcraft.enterLicenseKey",
+        "title": "CommitCraft: Enter License Key"
       }
     ],
     "menus": {
