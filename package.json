@@ -2,7 +2,7 @@
   "name": "cyferlawyn-commitcraft",
   "displayName": "CommitCraft — Local AI",
   "description": "AI-generated conventional commit messages. Entirely on-device. No API keys. No code leaves your machine.",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "publisher": "cyferlawyn",
   "icon": "icon.png",
   "license": "SEE LICENSE IN LICENSE",
@@ -10,12 +10,17 @@
     "type": "git",
     "url": "https://github.com/cyferlawyn/commitcraft-vscode"
   },
+  "galleryBanner": {
+    "color": "#0d0f14",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other",
-    "SCM Providers"
+    "Machine Learning",
+    "SCM Providers",
+    "Other"
   ],
   "keywords": [
     "git",

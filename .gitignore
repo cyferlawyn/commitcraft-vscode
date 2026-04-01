@@ -28,3 +28,5 @@ bin/linux-x64/*
 bin/win32-x64/*
 !bin/win32-x64/llama-cli.exe
 !bin/win32-x64/*.dll
+
+LAUNCH.md
