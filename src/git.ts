@@ -5,7 +5,6 @@
 
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import * as path from 'path';
 
 const execFileAsync = promisify(execFile);
 
@@ -16,6 +15,26 @@ export interface DiffResult {
 }
 
 /**
+ * Resolves the actual git repository root from any directory within the repo.
+ * Uses `git rev-parse --show-toplevel` so we always run diff from the right cwd
+ * regardless of which subfolder VS Code has open as the workspace.
+ */
+async function resolveGitRoot(startDir: string): Promise<string> {
+  try {
+    const result = await execFileAsync('git', ['rev-parse', '--show-toplevel'], {
+      cwd: startDir,
+    });
+    return result.stdout.trim();
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.includes('not a git repository')) {
+      throw new Error('The current workspace is not a git repository.');
+    }
+    throw new Error(`Failed to run git: ${message}`);
+  }
+}
+
+/**
  * Returns the staged diff for the given workspace root.
  * Throws if git is not available or no staged changes exist.
  */
@@ -23,11 +42,13 @@ export async function getStagedDiff(
   workspaceRoot: string,
   maxChars: number = 16000, // ~4000 tokens at ~4 chars/token
 ): Promise<DiffResult> {
+  const gitRoot = await resolveGitRoot(workspaceRoot);
+
   let stdout: string;
 
   try {
     const result = await execFileAsync('git', ['diff', '--staged', '--no-color'], {
-      cwd: workspaceRoot,
+      cwd: gitRoot,
       maxBuffer: 10 * 1024 * 1024, // 10MB limit — very large diffs
     });
     stdout = result.stdout;
@@ -46,7 +67,7 @@ export async function getStagedDiff(
     let statusOut = '';
     try {
       const statusResult = await execFileAsync('git', ['status', '--short'], {
-        cwd: workspaceRoot,
+        cwd: gitRoot,
       });
       statusOut = statusResult.stdout;
     } catch {
@@ -63,7 +84,7 @@ export async function getStagedDiff(
     try {
       const nsResult = await execFileAsync(
         'git', ['diff', '--staged', '--name-status', '--no-color'],
-        { cwd: workspaceRoot },
+        { cwd: gitRoot },
       );
       stdout = nsResult.stdout.trim()
         ? `Staged changes (no text diff available):\n${nsResult.stdout}`
