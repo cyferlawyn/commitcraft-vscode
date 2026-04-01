@@ -60,7 +60,6 @@ jobs:
     name: Publish to Marketplace
     needs: build
     runs-on: ubuntu-latest
-    environment: marketplace
 
     steps:
       - uses: actions/checkout@v4
