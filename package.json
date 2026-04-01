@@ -1,8 +1,8 @@
 {
-  "name": "commitcraft-ai",
+  "name": "cyferlawyn-commitcraft",
   "displayName": "CommitCraft",
   "description": "AI-generated conventional commit messages. Entirely on-device. No API keys. No code leaves your machine.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "cyferlawyn",
   "icon": "icon.png",
   "license": "SEE LICENSE IN LICENSE",
