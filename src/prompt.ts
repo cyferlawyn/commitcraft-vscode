@@ -5,7 +5,7 @@
 
 import type { CommitlintRules } from './validator';
 
-export function buildPrompt(diff: string, rules: CommitlintRules = {}): string {
+export function buildPrompt(diff: string, rules: CommitlintRules = {}, generateBody = false): string {
   const allowedTypes = rules.typeEnum ?? [
     'feat', 'fix', 'refactor', 'docs', 'style',
     'test', 'chore', 'perf', 'ci', 'build', 'revert',
@@ -16,6 +16,11 @@ export function buildPrompt(diff: string, rules: CommitlintRules = {}): string {
     : `Use a short module/package name as scope if identifiable. Do NOT use file paths, directory paths, or file extensions as the scope.`;
 
   const maxLen = rules.subjectMaxLength ?? 72;
+
+  const bodyInstruction = generateBody
+    ? `After the commit message line, add a blank line and then a short paragraph (2-3 sentences) ` +
+      `explaining the motivation or context for the change.`
+    : `Output ONLY the single commit message line. No explanation, no extra text.`;
 
   return `You are a commit message generator. Given a git diff, output exactly one conventional commit message line.
 
@@ -33,7 +38,7 @@ Type rules (choose the FIRST matching rule):
 
 ${scopeConstraint}
 Subject: imperative mood, lowercase start, no trailing period, max ${maxLen} chars.
-Output ONLY the commit message. No explanation, no extra text.
+${bodyInstruction}
 
 Examples:
 diff adds new CSV export endpoint → feat(api): add csv export endpoint

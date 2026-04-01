@@ -75,7 +75,8 @@ async function generateCommitMessage(context: vscode.ExtensionContext): Promise<
   const rules = await detectCommitlintRules(workspaceRoot);
 
   // 6. Build prompt
-  const prompt = buildPrompt(diffResult.diff, rules);
+  const generateBody = vscode.workspace.getConfiguration('commitcraft').get<boolean>('generateBody') ?? false;
+  const prompt = buildPrompt(diffResult.diff, rules, generateBody);
 
   // 7. Run inference with progress indicator
   let rawOutput: string;
@@ -110,7 +111,7 @@ async function generateCommitMessage(context: vscode.ExtensionContext): Promise<
 
   if (!validation.valid) {
     // Retry with explicit correction instruction
-    const retryPrompt = buildPrompt(diffResult.diff, rules) +
+    const retryPrompt = buildPrompt(diffResult.diff, rules, generateBody) +
       `\n\nPrevious attempt "${rawOutput}" was invalid. ` +
       `Output ONLY the commit message in format type(scope): subject`;
 

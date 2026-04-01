@@ -88,7 +88,7 @@ function parseYamlConfig(content: string): CommitlintRules {
     if (inRules && /^\s+\S/.test(line)) {
       const match = line.match(/^\s+([\w-]+):\s*(.+)/);
       if (match) {
-        rules[match[1]] = match[2];
+        rules[match[1]] = parseYamlValue(match[2].trim());
       }
     } else if (inRules && /^\S/.test(line)) {
       inRules = false;
@@ -96,6 +96,58 @@ function parseYamlConfig(content: string): CommitlintRules {
   }
 
   return extractRulesFromObject({ rules });
+}
+
+/**
+ * Parses a YAML inline value into a JS value.
+ * Handles: inline arrays like [2, always, [feat, fix]], numbers, strings.
+ */
+function parseYamlValue(value: string): unknown {
+  if (value.startsWith('[') && value.endsWith(']')) {
+    return parseYamlInlineArray(value);
+  }
+  const num = Number(value);
+  if (!isNaN(num) && value !== '') {
+    return num;
+  }
+  // Strip optional surrounding quotes
+  return value.replace(/^['"]|['"]$/g, '');
+}
+
+/**
+ * Parses a YAML inline array like [2, always, [feat, fix, chore]].
+ * Handles one level of nesting (enough for commitlint rules).
+ */
+function parseYamlInlineArray(value: string): unknown[] {
+  // Strip outer brackets
+  const inner = value.slice(1, -1).trim();
+  if (!inner) {
+    return [];
+  }
+
+  const items: unknown[] = [];
+  let depth = 0;
+  let current = '';
+
+  for (const ch of inner) {
+    if (ch === '[') {
+      depth++;
+      current += ch;
+    } else if (ch === ']') {
+      depth--;
+      current += ch;
+    } else if (ch === ',' && depth === 0) {
+      items.push(parseYamlValue(current.trim()));
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) {
+    items.push(parseYamlValue(current.trim()));
+  }
+
+  return items;
 }
 
 function extractRulesFromObject(config: unknown): CommitlintRules {
