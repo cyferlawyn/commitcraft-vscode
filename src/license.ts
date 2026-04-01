@@ -21,6 +21,9 @@ const REMINDER_START_DAY = 7;
 
 const STATE_KEY_LICENSE = 'commitcraft.licenseKey';
 const STATE_KEY_FIRST_RUN = 'commitcraft.firstRunDate';
+const STATE_KEY_WELCOMED = 'commitcraft.welcomed';
+
+const BUY_URL = 'https://commitcraft.cyferlawyn.org';
 
 export interface LicensePayload {
   emailHash: string;
@@ -92,7 +95,8 @@ export function verifyLicenseKey(licenseKey: string): LicenseState {
 }
 
 /**
- * Gets the current license state from stored key or trial status.
+ * Prompts the user to enter a license key and validates it.
+ * Stores valid keys in globalState.
  */
 export function getLicenseState(context: vscode.ExtensionContext): LicenseState {
   const storedKey = context.globalState.get<string>(STATE_KEY_LICENSE);
@@ -122,9 +126,91 @@ export function getLicenseState(context: vscode.ExtensionContext): LicenseState 
 }
 
 /**
- * Prompts the user to enter a license key and validates it.
- * Stores valid keys in globalState.
+ * Shows a one-time welcome notification on first activation.
+ * Records that the welcome has been shown so it never appears again.
  */
+export async function maybeShowWelcome(
+  context: vscode.ExtensionContext,
+): Promise<void> {
+  const alreadyWelcomed = context.globalState.get<boolean>(STATE_KEY_WELCOMED);
+  if (alreadyWelcomed) {
+    return;
+  }
+
+  const state = getLicenseState(context);
+
+  // Only show for trial users (not someone who installs with a key already stored)
+  if (state.status !== 'trial') {
+    await context.globalState.update(STATE_KEY_WELCOMED, true);
+    return;
+  }
+
+  const expiryDate = new Date();
+  expiryDate.setDate(expiryDate.getDate() + TRIAL_DAYS);
+  const expiryStr = expiryDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+
+  const action = await vscode.window.showInformationMessage(
+    `Welcome to CommitCraft! Your 14-day free trial runs until ${expiryStr}. ` +
+    `Use "CommitCraft: Enter License Key" in the Command Palette to activate after purchase.`,
+    'Buy License ($9)',
+    'Got It',
+  );
+
+  await context.globalState.update(STATE_KEY_WELCOMED, true);
+
+  if (action === 'Buy License ($9)') {
+    vscode.env.openExternal(vscode.Uri.parse(BUY_URL));
+  }
+}
+
+/**
+ * Shows the current license status in a detail message.
+ * Triggered by the "CommitCraft: License Info" command.
+ */
+export async function showLicenseInfo(
+  context: vscode.ExtensionContext,
+): Promise<void> {
+  const state = getLicenseState(context);
+
+  if (state.status === 'valid') {
+    const { tier, expiry } = state.payload;
+    const expiryText = expiry === 'perpetual' ? 'perpetual (never expires)' : `expires ${new Date(expiry).toLocaleDateString()}`;
+    vscode.window.showInformationMessage(
+      `CommitCraft: License active — ${tier} / ${expiryText}.`,
+    );
+    return;
+  }
+
+  if (state.status === 'trial') {
+    const action = await vscode.window.showInformationMessage(
+      `CommitCraft: Free trial — ${state.daysRemaining} day${state.daysRemaining === 1 ? '' : 's'} remaining. ` +
+      `A one-time license is $9 and works offline forever.`,
+      'Buy License ($9)',
+      'Enter License Key',
+    );
+    if (action === 'Buy License ($9)') {
+      vscode.env.openExternal(vscode.Uri.parse(BUY_URL));
+    } else if (action === 'Enter License Key') {
+      await promptForLicenseKey(context);
+    }
+    return;
+  }
+
+  if (state.status === 'expired_trial') {
+    const action = await vscode.window.showErrorMessage(
+      `CommitCraft: Trial expired. Purchase a one-time license ($9) to continue.`,
+      'Buy License ($9)',
+      'Enter License Key',
+    );
+    if (action === 'Buy License ($9)') {
+      vscode.env.openExternal(vscode.Uri.parse(BUY_URL));
+    } else if (action === 'Enter License Key') {
+      await promptForLicenseKey(context);
+    }
+  }
+}
+
+
 export async function promptForLicenseKey(
   context: vscode.ExtensionContext,
 ): Promise<boolean> {
@@ -149,7 +235,7 @@ export async function promptForLicenseKey(
     const reason = result.status === 'invalid' ? result.reason : 'Unknown error';
     vscode.window.showErrorMessage(
       `Invalid license key: ${reason}. ` +
-      `Purchase a key at https://commitcraft.cyferlawyn.org`,
+      `Purchase a key at ${BUY_URL}`,
     );
     return false;
   }
@@ -173,10 +259,13 @@ export async function checkLicenseGate(
     if (state.daysRemaining <= TRIAL_DAYS - REMINDER_START_DAY) {
       vscode.window.showInformationMessage(
         `CommitCraft trial: ${state.daysRemaining} day${state.daysRemaining === 1 ? '' : 's'} remaining. ` +
-        `Get a license at https://commitcraft.cyferlawyn.org`,
+        `One-time license is $9 — ${BUY_URL}`,
+        'Buy License ($9)',
         'Enter License Key',
       ).then(action => {
-        if (action === 'Enter License Key') {
+        if (action === 'Buy License ($9)') {
+          vscode.env.openExternal(vscode.Uri.parse(BUY_URL));
+        } else if (action === 'Enter License Key') {
           promptForLicenseKey(context);
         }
       });
@@ -186,13 +275,13 @@ export async function checkLicenseGate(
 
   if (state.status === 'expired_trial') {
     const action = await vscode.window.showErrorMessage(
-      'Your CommitCraft trial has expired. Purchase a license to continue using CommitCraft.',
-      'Buy License',
+      'Your CommitCraft trial has expired. A one-time license is $9 and works offline forever.',
+      'Buy License ($9)',
       'Enter License Key',
     );
 
-    if (action === 'Buy License') {
-      vscode.env.openExternal(vscode.Uri.parse('https://commitcraft.cyferlawyn.org'));
+    if (action === 'Buy License ($9)') {
+      vscode.env.openExternal(vscode.Uri.parse(BUY_URL));
     } else if (action === 'Enter License Key') {
       return await promptForLicenseKey(context);
     }

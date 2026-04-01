@@ -11,7 +11,7 @@ import { buildPrompt } from './prompt';
 import { runInference } from './inference';
 import { validateCommit, extractCommitLine } from './validator';
 import { ensureModel } from './model';
-import { checkLicenseGate, promptForLicenseKey } from './license';
+import { checkLicenseGate, promptForLicenseKey, maybeShowWelcome, showLicenseInfo } from './license';
 
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
@@ -23,7 +23,14 @@ export function activate(context: vscode.ExtensionContext): void {
       'commitcraft.enterLicenseKey',
       () => promptForLicenseKey(context),
     ),
+    vscode.commands.registerCommand(
+      'commitcraft.showLicenseInfo',
+      () => showLicenseInfo(context),
+    ),
   );
+
+  // One-time welcome notification on first install
+  maybeShowWelcome(context);
 }
 
 export function deactivate(): void {
