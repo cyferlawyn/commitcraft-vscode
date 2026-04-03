@@ -23,7 +23,7 @@ const STATE_KEY_LICENSE = 'commitcraft.licenseKey';
 const STATE_KEY_FIRST_RUN = 'commitcraft.firstRunDate';
 const STATE_KEY_WELCOMED = 'commitcraft.welcomed';
 
-const BUY_URL = 'https://commitcraft.cyferlawyn.org';
+const BUY_URL = 'https://www.cyferlawyn.org/commitcraft';
 
 export interface LicensePayload {
   emailHash: string;

@@ -52,7 +52,7 @@ Zero network calls at inference time. The model runs in a bundled [llama.cpp](ht
 
 **Free 14-day trial.** After that, a one-time license key unlocks CommitCraft permanently.
 
-**[$9 one-time — commitcraft.cyferlawyn.org](https://commitcraft.cyferlawyn.org)**
+**[$9 one-time — cyferlawyn.org/commitcraft](https://www.cyferlawyn.org/commitcraft)**
 
 No subscription. No seat limits. No expiry. License validation is cryptographic (Ed25519) and fully offline — no license server is ever contacted.
 
